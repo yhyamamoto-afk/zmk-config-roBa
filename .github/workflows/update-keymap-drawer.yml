@@ -3,16 +3,17 @@ name: Update keymap-drawer (YAML & SVG)
 on:
   push:
     paths:
-      - "config/**/*.keymap"
-      - "config/**/*.keymap"
-  workflow_dispatch: {}
+      - "config/**/*.keymap"      # .keymap を更新したら自動実行
+      - "config/*.keymap"
+  workflow_dispatch: {}           # 手動実行も可
 
 permissions:
-  contents: write
+  contents: write                 # 生成物をコミットするために必要
 
 jobs:
   build-draw:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,16 +31,22 @@ jobs:
       - name: Ensure output dir
         run: mkdir -p keymap-drawer
 
-      - name: Generate YAML
-        run: keymap parse -zmk config/roBa.keymap -o keymap-drawer/roBa.yaml
+      # ★ 修正ポイント：-zmk ではなく --zmk-keymap もしくは -z を使う
+      - name: Generate YAML from .keymap
+        run: keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
+        # 例: 複数ある場合は上の行を増やすか、ループにしてください
 
-      - name: Generate SVG
+      - name: Generate SVG from YAML
         run: keymap draw keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
 
-      - name: Commit changes
+      - name: Commit changes (if any)
         run: |
-          git config --global user.name "keymap-drawer bot"
-          git config --global user.email "keymap-drawer@example.com"
+          git config user.name  "keymap-bot"
+          git config user.email "keymap-bot@users.noreply.github.com"
           git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg
-          git commit -m "Update keymap drawer output" || echo "No changes"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(keymap-drawer): auto-update YAML & SVG from config/roBa.keymap"
+            git push
+          else
+            echo "No changes to commit."
+          fi
