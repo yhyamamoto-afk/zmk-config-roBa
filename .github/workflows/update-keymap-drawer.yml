@@ -3,8 +3,9 @@ name: Update keymap-drawer (YAML & SVG)
 on:
   push:
     paths:
-      - "config/**/*.keymap"      # .keymapを更新したら自動実行
+      - "config/**/*.keymap"      # .keymapを更新したら実行
       - "config/*.keymap"
+      - "draw.yml"                # 物理レイアウト変更時も再生成
   workflow_dispatch: {}           # 手動実行も可
 
 permissions:
@@ -18,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ★ 重要: Python 3.12 を使う（keymap-drawer の要件を満たす）
+      # keymap-drawer が要求する Python 3.12 を使用
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -36,18 +37,18 @@ jobs:
       - name: Generate YAML from .keymap
         run: keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
 
-      # YAML → SVG
+      # YAML → SVG（★ ここで roBa の物理レイアウト定義 draw.yml を渡す）
       - name: Generate SVG from YAML
-        run: keymap draw keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
+        run: keymap draw -c draw.yml keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
 
-      # 変更があればコミット＆プッシュ
+      # 差分があればコミット
       - name: Commit changes (if any)
         run: |
           git config user.name  "keymap-bot"
           git config user.email "keymap-bot@users.noreply.github.com"
           git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg
           if ! git diff --cached --quiet; then
-            git commit -m "chore(keymap-drawer): auto-update YAML & SVG from config/roBa.keymap"
+            git commit -m "chore(keymap-drawer): auto-update YAML & SVG"
             git push
           else
             echo "No changes to commit."
