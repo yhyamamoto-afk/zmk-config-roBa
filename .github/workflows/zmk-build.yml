@@ -11,5 +11,5 @@ jobs:
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
     with:
-      boards: nice_nano_v2
-      shield: roBa
+      board: nice_nano_v2     # ← ここは単数 'board'
+      shield: roBa            # ← まずは roBa のまま。Unknown shield が出たら 'roba' に変更
