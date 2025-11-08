@@ -3,13 +3,13 @@ name: Update keymap-drawer (YAML & SVG)
 on:
   push:
     paths:
-      - "config/**/*.keymap"      # .keymapを更新したら実行
+      - "config/**/*.keymap"      # .keymap更新で実行
       - "config/*.keymap"
       - "draw.yml"                # 物理レイアウト変更時も再生成
   workflow_dispatch: {}           # 手動実行も可
 
 permissions:
-  contents: write                 # 生成物をコミットするために必要
+  contents: write                 # 生成物コミットに必要
 
 jobs:
   build-draw:
@@ -33,15 +33,15 @@ jobs:
       - name: Ensure output dir
         run: mkdir -p keymap-drawer
 
-      # roBa.keymap → YAML
+      # .keymap → YAML
       - name: Generate YAML from .keymap
         run: keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
 
-      # YAML → SVG（★ ここで roBa の物理レイアウト定義 draw.yml を渡す）
+      # YAML → SVG（★ config を --config で渡す）
       - name: Generate SVG from YAML
-        run: keymap draw -c draw.yml keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
+        run: keymap draw --config draw.yml keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
 
-      # 差分があればコミット
+      # 差分があればコミット＆プッシュ
       - name: Commit changes (if any)
         run: |
           git config user.name  "keymap-bot"
