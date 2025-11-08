@@ -25,10 +25,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install west
 
-      # ZMK を manifest として初期化（← ここがポイント）
-      - name: Init west workspace (use ZMK as manifest)
+      # ★ ZMKをmanifestに指定。west.ymlの場所を --mf で明示
+      - name: Init west workspace (use ZMK manifest)
         run: |
-          west init -m https://github.com/zmkfirmware/zmk.git
+          rm -rf .west
+          west init -m https://github.com/zmkfirmware/zmk.git --mf config/west.yml
           west update
           west zephyr-export
 
