@@ -3,78 +3,64 @@ name: Update keymap-drawer (YAML & SVG)
 on:
   push:
     paths:
-      - "config/**/*.keymap"      # .keymap更新で実行
-      - "config/*.keymap"
-      - "draw.yml"                # 物理レイアウト変更時も再生成
-      - "keymap-drawer/draw.yml"
-  workflow_dispatch: {}           # 手動実行も可
+      - "config/**/*.keymap"
+      - ".github/workflows/update-keymap-drawer.yml"
+      - "draw.yml"
+  workflow_dispatch: {}
 
 permissions:
-  contents: write                 # 生成物コミットに必要
+  contents: write
 
 jobs:
   build-draw:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python (keymap-drawer 要件)
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12"   # keymap-drawer 0.15 系が要求
 
-      - name: Install keymap-drawer
+      - name: Install keymap-drawer toolchain
         run: |
           python -m pip install --upgrade pip
-          pip install keymap-drawer
+          pip install keymap-drawer==0.15.1 tree_sitter==0.20.1
 
       - name: Ensure output dir
         run: mkdir -p keymap-drawer
 
-      # .keymap → YAML
+      # ZMK の .keymap から中間 YAML を生成
       - name: Generate YAML from .keymap
         run: |
-          set -eu
-          keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
-          echo "== Generated YAML =="
-          head -n 40 keymap-drawer/roBa.yaml || true
+          keymap parse -z config/roBa.keymap -o keymap-drawer/roBa.yaml
+          ls -la keymap-drawer/roBa.yaml
 
-      # YAML → SVG（draw.yml の場所を自動検出して指定）
+      # 中間 YAML から SVG を生成（draw.yml が無ければスキップ）
       - name: Generate SVG from YAML
         run: |
           set -eu
           echo "== Repo tree (top) =="; ls -la
           echo "== keymap-drawer dir =="; ls -la keymap-drawer || true
 
-          # 探索順: ルートの draw.yml → keymap-drawer/draw.yml
           if [ -f draw.yml ]; then
             CONFIG_PATH="draw.yml"
           elif [ -f keymap-drawer/draw.yml ]; then
             CONFIG_PATH="keymap-drawer/draw.yml"
           else
-            echo "::error::draw.yml が見つかりません。リポジトリ直下か keymap-drawer/ に配置してください。"
-            exit 1
+            echo "draw.yml が無いので SVG 生成はスキップします（YAML は更新済み）"
+            exit 0
           fi
 
           echo "Using config: ${CONFIG_PATH}"
-          echo "== show first lines of ${CONFIG_PATH} =="; head -n 60 "${CONFIG_PATH}"
-
-          keymap draw --config "${CONFIG_PATH}" keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
-          echo "== SVG generated =="
+          keymap draw -c "${CONFIG_PATH}" keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
           ls -la keymap-drawer/roBa.svg
 
-      # 差分があればコミット＆プッシュ
       - name: Commit changes (if any)
         run: |
-          set -eu
-          git config user.name  "keymap-bot"
-          git config user.email "keymap-bot@users.noreply.github.com"
-          git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(keymap-drawer): auto-update YAML & SVG"
-            git push
-          else
-            echo "No changes to commit."
-          fi
+          git config --global user.name  "keymap-drawer bot"
+          git config --global user.email "keymap-drawer@example.com"
+          git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg || true
+          git commit -m "Update keymap-drawer output" || echo "No changes"
+          git push || true
