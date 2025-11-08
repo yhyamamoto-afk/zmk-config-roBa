@@ -1,16 +1,16 @@
-# draw.yml  ― Keymap Drawer 用の描画設定（最低限）
-# キーボード名は ZMK の keyboard 名。config/roBa.keymap に合わせておくと後で便利。
-keyboard: roBa
+# keymap-drawer/draw.yml
+# ❶ どの物理レイアウトで描くか（ここを指定しないとオーソで描かれる）
+qmk_keyboard: crkbd/rev1
+layout: LAYOUT_split_3x6_3
 
-# まずは見やすい等間隔のグリッドで描画（後で個別座標に発展できます）
-layout:
-  ortho_layout:
-    rows: 4
-    cols: 12  # 例: 片手6列×左右＝12。合わなければ後で調整してください。
+# ❷ どの YAML（キー割り当て）を描くか
+keymap: keymap-drawer/roBa.yaml
 
-# （任意）描画オプションの例
-# draw:
-#   key_w: 18
-#   key_h: 18
-#   key_rx: 4
-#   key_ry: 4
+# ❸ 出力先（Actions が上書きします）
+out: keymap-drawer/roBa.svg
+
+# ❹ お好み（なくてもOK）
+draw_config:
+  combo_w: 12
+  combo_h: 12
+  split_gap: 12
