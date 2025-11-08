@@ -86,7 +86,9 @@
 &kp LCTRL  &kp LEFT_WIN  &kp LEFT_ALT  &kp TAB  &lt 1 SPACE  &lt_to_layer_0 2 INT_MUHENKAN         &lt_to_layer_0 3 LANG_HIRAGANA  &lt 3 BACKSPACE                             &mt LEFT_SHIFT RS(KP_NUMBER_2)
             >;
 
-            sensor-bindings = <&inc_dec_kp RC(PLUS) RC(MINUS)>;
+            sensor-bindings =
+                <&inc_dec_kp C_VOLUME_UP C_VOLUME_DOWN>,
+                <&inc_dec_kp C_VOLUME_UP C_VOLUME_DOWN>;
         };
 
         FUNCTION {
