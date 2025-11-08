@@ -25,11 +25,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install west
 
-      # ★ ZMKをmanifestに指定。west.ymlの場所を --mf で明示
-      - name: Init west workspace (use ZMK manifest)
+      # --- manifest を新旧どちらにも対応して初期化 ---
+      - name: Init west workspace (try both manifest paths)
         run: |
           rm -rf .west
-          west init -m https://github.com/zmkfirmware/zmk.git --mf config/west.yml
+          # まず新配置（リポ直下）の west.yml を試す
+          if west init -m https://github.com/zmkfirmware/zmk.git --mf west.yml; then
+            echo "Initialized with west.yml at repo root"
+          else
+            echo "Root west.yml not found, trying config/west.yml ..."
+            rm -rf .west
+            west init -m https://github.com/zmkfirmware/zmk.git --mf config/west.yml
+          fi
           west update
           west zephyr-export
 
