@@ -6,20 +6,10 @@ on:
     paths:
       - "config/**"
       - "boards/**"
-      - "build.yaml"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build firmware
-        uses: zmkfirmware/zmk/.github/actions/build@main
-        with:
-          board: nice_nano_v2       # ← 使用MCUに合わせる
-          shield: roba              # ← roBaでOK
-
-    permissions:
-      contents: write
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    with:
+      boards: nice_nano_v2
+      shield: roBa
