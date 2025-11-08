@@ -11,7 +11,9 @@ jobs:
   build:
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
     with:
-      build_matrix: |
+      build-matrix: |
         [
           { "board": "nice_nano_v2", "shield": "roBa" }
         ]
+      # 任意: 生成物の名前を分かりやすくしたい場合
+      # archive-name: "firmware-roBa-nicenano"
