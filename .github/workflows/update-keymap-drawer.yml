@@ -6,6 +6,7 @@ on:
       - "config/**/*.keymap"      # .keymap更新で実行
       - "config/*.keymap"
       - "draw.yml"                # 物理レイアウト変更時も再生成
+      - "keymap-drawer/draw.yml"
   workflow_dispatch: {}           # 手動実行も可
 
 permissions:
@@ -19,8 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # keymap-drawer が要求する Python 3.12 を使用
-      - name: Set up Python
+      - name: Set up Python (keymap-drawer 要件)
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -35,15 +35,40 @@ jobs:
 
       # .keymap → YAML
       - name: Generate YAML from .keymap
-        run: keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
+        run: |
+          set -eu
+          keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
+          echo "== Generated YAML =="
+          head -n 40 keymap-drawer/roBa.yaml || true
 
-      # YAML → SVG（★ config を --config で渡す）
+      # YAML → SVG（draw.yml の場所を自動検出して指定）
       - name: Generate SVG from YAML
-        run: keymap draw --config draw.yml keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
+        run: |
+          set -eu
+          echo "== Repo tree (top) =="; ls -la
+          echo "== keymap-drawer dir =="; ls -la keymap-drawer || true
+
+          # 探索順: ルートの draw.yml → keymap-drawer/draw.yml
+          if [ -f draw.yml ]; then
+            CONFIG_PATH="draw.yml"
+          elif [ -f keymap-drawer/draw.yml ]; then
+            CONFIG_PATH="keymap-drawer/draw.yml"
+          else
+            echo "::error::draw.yml が見つかりません。リポジトリ直下か keymap-drawer/ に配置してください。"
+            exit 1
+          fi
+
+          echo "Using config: ${CONFIG_PATH}"
+          echo "== show first lines of ${CONFIG_PATH} =="; head -n 60 "${CONFIG_PATH}"
+
+          keymap draw --config "${CONFIG_PATH}" keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
+          echo "== SVG generated =="
+          ls -la keymap-drawer/roBa.svg
 
       # 差分があればコミット＆プッシュ
       - name: Commit changes (if any)
         run: |
+          set -eu
           git config user.name  "keymap-bot"
           git config user.email "keymap-bot@users.noreply.github.com"
           git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg
