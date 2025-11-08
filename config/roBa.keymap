@@ -96,6 +96,8 @@
 &kp LEFT_SHIFT    &trans        &trans        &trans        &trans  &trans      &trans  &trans        &trans  &trans  &trans  &kp F11
 &kp LEFT_CONTROL  &kp LEFT_GUI  &kp LEFT_ALT  &kp TAB       &trans  &trans      &trans  &trans                                &kp RIGHT_SHIFT
             >;
+
+            sensor-bindings = <&inc_dec_kp LC(PLUS) LC(MINUS)>;
         };
 
         NUM {
