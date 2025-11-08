@@ -9,11 +9,46 @@ on:
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
-    with:
-      build-matrix: |
-        [
-          { "board": "nice_nano_v2", "shield": "roBa" }
-        ]
-      # 任意: 生成物の名前を分かりやすくしたい場合
-      # archive-name: "firmware-roBa-nicenano"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python (for west)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install west & deps
+        run: |
+          pip install --upgrade pip
+          pip install west
+
+      # ZMK 本体を取得（ユーザー設定リポをローカルとして使う）
+      - name: Init west workspace
+        run: |
+          west init -l .
+          west update
+          west zephyr-export
+
+      # ★ ここがビルド本体 ★
+      - name: Build (nice_nano_v2 + roBa)
+        run: |
+          west build -s zmk/app -d build/roba \
+            -b nice_nano_v2 \
+            -- \
+            -DSHIELD=roBa \
+            -DZMK_CONFIG=${{ github.workspace }}
+
+      # 生成物を成果物として保存
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-roBa-nice_nano_v2
+          path: |
+            build/roba/zephyr/zmk.uf2
+            build/roba/zephyr/zmk.hex
+          if-no-files-found: error
