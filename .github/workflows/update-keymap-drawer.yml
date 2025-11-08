@@ -1,0 +1,45 @@
+name: Update keymap-drawer (YAML & SVG)
+
+on:
+  push:
+    paths:
+      - "config/**/*.keymap"
+      - "config/**/*.keymap"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-draw:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install keymap-drawer
+        run: |
+          python -m pip install --upgrade pip
+          pip install keymap-drawer
+
+      - name: Ensure output dir
+        run: mkdir -p keymap-drawer
+
+      - name: Generate YAML
+        run: keymap parse -zmk config/roBa.keymap -o keymap-drawer/roBa.yaml
+
+      - name: Generate SVG
+        run: keymap draw keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "keymap-drawer bot"
+          git config --global user.email "keymap-drawer@example.com"
+          git add keymap-drawer/roBa.yaml keymap-drawer/roBa.svg
+          git commit -m "Update keymap drawer output" || echo "No changes"
+          git push
