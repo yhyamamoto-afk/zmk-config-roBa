@@ -3,12 +3,12 @@ name: Update keymap-drawer (YAML & SVG)
 on:
   push:
     paths:
-      - "config/**/*.keymap"      # .keymapが更新されたら実行
+      - "config/**/*.keymap"      # .keymapを更新したら自動実行
       - "config/*.keymap"
   workflow_dispatch: {}           # 手動実行も可
 
 permissions:
-  contents: write                 # 生成物をコミットするのに必要
+  contents: write                 # 生成物をコミットするために必要
 
 jobs:
   build-draw:
@@ -18,32 +18,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ★ 重要: Python 3.12 を使う（keymap-drawer の要件を満たす）
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      # 重要: tree_sitter を 0.20.1 に固定（0.21系はAPIが変わりエラーになる）
-      # keymap-drawer も既知安定版に固定
-      - name: Install keymap-drawer toolchain
+      - name: Install keymap-drawer
         run: |
           python -m pip install --upgrade pip
-          pip install "tree_sitter==0.20.1"
-          pip install "keymap-drawer==0.15.1"
+          pip install keymap-drawer
 
       - name: Ensure output dir
         run: mkdir -p keymap-drawer
 
-      # roBa.keymap → YAML に変換
-      # (-z / --zmk-keymap のどちらか。ここではロングオプションを使用)
+      # roBa.keymap → YAML
       - name: Generate YAML from .keymap
         run: keymap parse --zmk-keymap config/roBa.keymap -o keymap-drawer/roBa.yaml
 
-      # YAML → SVG に描画
+      # YAML → SVG
       - name: Generate SVG from YAML
         run: keymap draw keymap-drawer/roBa.yaml -o keymap-drawer/roBa.svg
 
-      # 差分があればコミット&プッシュ
+      # 変更があればコミット＆プッシュ
       - name: Commit changes (if any)
         run: |
           git config user.name  "keymap-bot"
