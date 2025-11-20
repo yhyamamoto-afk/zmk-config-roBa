@@ -81,7 +81,7 @@
         default_layer {
             bindings = <
 &kp Q      &kp W         &kp E         &kp R    &kp T                                                                              &kp Y            &kp U  &kp I      &kp O    &kp P
-&kp A      &kp S         &kp D         &kp F    &kp G        &kp LS(LG(S))                         &kp EXCLAMATION                 &kp H            &kp J  &kp K      &kp L    &kp ENTER
+&kp A      &kp S         &kp D         &kp F    &kp G        &kp C_MUTE                            &kp EXCLAMATION                 &kp H            &kp J  &kp K      &kp L    &kp ENTER
 &kp Z      &kp X         &kp C         &kp V    &kp B        &lt_to_layer_0 6 INTERNATIONAL_4      &kp QUESTION                    &kp N            &kp M  &kp COMMA  &kp DOT  &kp MINUS
 &kp LCTRL  &kp LEFT_WIN  &kp LEFT_ALT  &kp TAB  &lt 1 SPACE  &lt_to_layer_0 2 INT_MUHENKAN         &lt_to_layer_0 3 LANG_HIRAGANA  &lt 3 BACKSPACE                             &mt LEFT_SHIFT RS(KP_NUMBER_2)
             >;
@@ -148,30 +148,27 @@
 &trans  &trans        &trans        &trans        &trans  &trans      &trans       &trans                                                  &bt BT_CLR_ALL
             >;
 
+            / {
+                behaviors {
+                    enc_cw: enc_cw {
+                        compatible = "zmk,behavior-tap";
+                        label = "ENC_CW";
+                        bindings = <&kp VOLUME_UP>;
+                    };
 
+                    enc_ccw: enc_ccw {
+                        compatible = "zmk,behavior-tap";
+                        label = "ENC_CCW";
+                        bindings = <&kp VOLUME_DOWN>;
+                    };
+                };
+            };
 
-/ {
-    behaviors {
-        enc_cw: enc_cw {
-            compatible = "zmk,behavior-tap";
-            label = "ENC_CW";
-            bindings = <&kp VOLUME_UP>;
-        };
-
-        enc_ccw: enc_ccw {
-            compatible = "zmk,behavior-tap";
-            label = "ENC_CCW";
-            bindings = <&kp VOLUME_DOWN>;
-        };
-    };
-};
-
-&encoder0 {
-    status = "okay";
-    cw  = <&enc_cw>;
-    ccw = <&enc_ccw>;
-};
-
+            &encoder0 {
+                status = "okay";
+                cw = <&enc_cw>;
+                ccw = <&enc_ccw>;
+            };
         };
     };
 };
